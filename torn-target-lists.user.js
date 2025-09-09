@@ -1,8 +1,9 @@
 // ==UserScript==
 // @name         Torn Target Lists
-// @namespace    ab.torn.tools
+// @namespace    https://github.com/adimages/torn
 // @version      1.0.0
-// @description  Curated links panel under the Targets list
+// @author       Vinnie [2222169]
+// @description  Curated links panel under the Targets list, links compiled in Google Sheets
 // @match        https://www.torn.com/page.php?sid=list&type=targets*
 // @run-at       document-idle
 // @noframes
@@ -11,6 +12,11 @@
 // @grant        GM.xmlHttpRequest
 // @connect      script.google.com
 // @connect      script.googleusercontent.com
+// @homepageURL  https://github.com/adimages/torn
+// @supportURL   https://github.com/adimages/torn/issues
+// @downloadURL  https://github.com/adimages/torn/raw/main/torn-target-lists.user.js
+// @updateURL    https://github.com/adimages/torn/raw/main/torn-target-lists.user.js
+// @license      MIT
 // ==/UserScript==
 
 (function () {
