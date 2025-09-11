@@ -1,9 +1,8 @@
 // ==UserScript==
 // @name         Torn Target Lists
-// @namespace    https://github.com/adimages/torn
-// @version      1.0.0
-// @author       Vinnie [2222169]
-// @description  Curated links panel under the Targets list, links compiled in Google Sheets
+// @namespace    ab.torn.tools
+// @version      1.1.0
+// @description  Curated links panel under the Targets list
 // @match        https://www.torn.com/page.php?sid=list&type=targets*
 // @run-at       document-idle
 // @noframes
@@ -12,11 +11,6 @@
 // @grant        GM.xmlHttpRequest
 // @connect      script.google.com
 // @connect      script.googleusercontent.com
-// @homepageURL  https://github.com/adimages/torn
-// @supportURL   https://github.com/adimages/torn/issues
-// @downloadURL  https://github.com/adimages/torn/raw/main/torn-target-lists.user.js
-// @updateURL    https://github.com/adimages/torn/raw/main/torn-target-lists.user.js
-// @license      MIT
 // ==/UserScript==
 
 (function () {
@@ -108,37 +102,56 @@
   }
 
   // ---------- Styles ----------
-  function ensureStyles() {
-    if (document.getElementById('tgt-curated-style')) return;
-    const s = document.createElement('style'); s.id = 'tgt-curated-style';
-    s.textContent = `
-      #tgt-curated{margin:12px 0;border-radius:8px;border:1px solid;overflow:hidden;width:100%;box-sizing:border-box;display:block}
-      #tgt-curated .tgt-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;font-weight:700;background-image:var(--default-panel-gradient)!important}
-      #tgt-curated .tgt-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-      #tgt-curated .tgt-actions a{font-weight:600;text-decoration:none;cursor:pointer}
-      #tgt-curated .tgt-body{padding:8px 10px;display:grid;gap:12px}
-      #tgt-curated .tgt-group h4{margin:0 0 6px;font-size:12px;opacity:.9}
-      #tgt-curated .tgt-list{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px}
-      #tgt-curated .tgt-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;border:1px solid}
-      #tgt-curated .tgt-item a{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none}
-      #tgt-curated .tgt-item a:hover{text-decoration:underline}
-      #tgt-curated .host{font-size:10px;opacity:.75;text-align:right}
-      #tgt-updated-out{margin:6px 2px 0 2px;font-size:11px}
-      #tgt-updated-out.theme-light{color:#525252}
-      #tgt-updated-out.theme-dark{color:#c9ced6}
-      /* Light */
-      #tgt-curated.theme-light{--default-panel-gradient:linear-gradient(180deg,#fff 0%,#ddd 100%);background:#f2f2f2;border-color:#cfd3d7;color:#222}
-      #tgt-curated.theme-light .tgt-head{color:#222;border-bottom:1px solid #cfd3d7}
-      #tgt-curated.theme-light .tgt-item{background:#e1e1e1;border-color:#bdbdbd}
-      #tgt-curated.theme-light a,#tgt-curated.theme-light .tgt-actions a{color:#444444}
-      /* Dark */
-      #tgt-curated.theme-dark{--default-panel-gradient:linear-gradient(180deg,#555 0%,#333 100%);background:#333333;border-color:#444;color:#e5e7eb}
-      #tgt-curated.theme-dark .tgt-head{color:#e5e7eb;border-bottom:1px solid #444}
-      #tgt-curated.theme-dark .tgt-item{background:#191919;border-color:#444}
-      #tgt-curated.theme-dark a,#tgt-curated.theme-dark .tgt-actions a{color:#dddddd}
-    `;
-    document.head.appendChild(s);
-  }
+function ensureStyles() {
+  if (document.getElementById('tgt-curated-style')) return;
+  const s = document.createElement('style'); s.id = 'tgt-curated-style';
+  s.textContent = `
+    #tgt-curated{margin:12px 0;border-radius:8px;border:1px solid;overflow:hidden;width:100%;box-sizing:border-box;display:block}
+    #tgt-curated .tgt-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;font-weight:700;background-image:var(--default-panel-gradient)!important}
+    #tgt-curated .tgt-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #tgt-curated .tgt-actions a{font-weight:600;text-decoration:none;cursor:pointer}
+    #tgt-curated .tgt-body{padding:8px 10px;display:grid;gap:12px}
+    #tgt-curated .tgt-group h4{margin:0 0 6px;font-size:12px;opacity:.9}
+
+    /* Desktop default: 3 columns */
+    #tgt-curated .tgt-list{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px}
+    #tgt-curated .tgt-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;border:1px solid}
+    #tgt-curated .tgt-item a{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none}
+    #tgt-curated .tgt-item a:hover{text-decoration:underline}
+    #tgt-curated .host{font-size:10px;opacity:.75;text-align:right}
+
+    /* Tablet and down: 2 columns */
+    @media (max-width: 1024px) {
+      #tgt-curated .tgt-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+    }
+
+    /* Phone: keep 2 columns, hide host for density */
+    @media (max-width: 640px) {
+      #tgt-curated .tgt-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+      #tgt-curated .host{display:none!important}
+      #tgt-curated .tgt-item{grid-template-columns:1fr!important}
+      #tgt-curated .tgt-head{padding:10px 12px}
+    }
+
+    /* Footer (outside panel) */
+    #tgt-updated-out{margin:6px 2px 0 2px;font-size:11px}
+    #tgt-updated-out.theme-light{color:#525252}
+    #tgt-updated-out.theme-dark{color:#c9ced6}
+
+    /* Light mode */
+    #tgt-curated.theme-light{--default-panel-gradient:linear-gradient(180deg,#fff 0%,#ddd 100%);background:#f2f2f2;border-color:#cfd3d7;color:#222}
+    #tgt-curated.theme-light .tgt-head{color:#222;border-bottom:1px solid #cfd3d7}
+    #tgt-curated.theme-light .tgt-item{background:#e1e1e1;border-color:#bdbdbd}
+    #tgt-curated.theme-light a,#tgt-curated.theme-light .tgt-actions a{color:#444444}
+
+    /* Dark mode */
+    #tgt-curated.theme-dark{--default-panel-gradient:linear-gradient(180deg,#555 0%,#333 100%);background:#333333;border-color:#444;color:#e5e7eb}
+    #tgt-curated.theme-dark .tgt-head{color:#e5e7eb;border-bottom:1px solid #444}
+    #tgt-curated.theme-dark .tgt-item{background:#191919;border-color:#444}
+    #tgt-curated.theme-dark a,#tgt-curated.theme-dark .tgt-actions a{color:#dddddd}
+  `;
+  document.head.appendChild(s);
+}
 
   // ---------- Utils ----------
   function hostFromURL(u){ try{ return new URL(u).host.replace(/^www\./,''); }catch{ return ''; } }
